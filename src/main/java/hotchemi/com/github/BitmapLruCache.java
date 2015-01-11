@@ -10,7 +10,7 @@ import static android.os.Build.VERSION_CODES.HONEYCOMB_MR1;
  *
  * @author Shintaro Katafuchi
  */
-public class BitmapLruCache extends LruCache<String, Bitmap> {
+public final class BitmapLruCache extends LruCache<String, Bitmap> {
 
     /**
      * Returns the number of bytes in {@link android.graphics.Bitmap}.
