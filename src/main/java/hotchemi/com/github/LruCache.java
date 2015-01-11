@@ -1,5 +1,6 @@
 package hotchemi.com.github;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -95,6 +96,13 @@ public class LruCache<K, V> implements Cache<K, V> {
     }
 
     /**
+     * Returns a copy of the current contents of the cache.
+     */
+    public synchronized Map<K, V> snapshot() {
+        return new LinkedHashMap<>(map);
+    }
+
+    /**
      * Returns the class name.
      * <p>
      * This method should be overridden to debug exactly.
@@ -110,7 +118,7 @@ public class LruCache<K, V> implements Cache<K, V> {
      * <p>
      * The default implementation returns 1 so that max size is the maximum number of entries.
      * <p>
-     * This method should be overridden if we control memory size correctly.
+     * <em>Note:</em> This method should be overridden if we control memory size correctly.
      *
      * @param value value
      * @return the size of the entry.
@@ -128,11 +136,11 @@ public class LruCache<K, V> implements Cache<K, V> {
      */
     private void trimToSize(int maxSize) {
         while (true) {
-            if (memorySize < 0 || (map.isEmpty() && memorySize != 0)) {
-                throw new IllegalStateException(getClassName() + " is reporting inconsistent results");
-            }
             if (memorySize <= maxSize || map.isEmpty()) {
                 break;
+            }
+            if (memorySize < 0 || (map.isEmpty() && memorySize != 0)) {
+                throw new IllegalStateException(getClassName() + " is reporting inconsistent results");
             }
             Map.Entry<K, V> toRemove = map.entrySet().iterator().next();
             map.remove(toRemove.getKey());
@@ -142,8 +150,19 @@ public class LruCache<K, V> implements Cache<K, V> {
 
     @Override
     public synchronized final String toString() {
-        return String.format(getClassName() + "[maxMemory=%d,currentMemory=%d,map=%d]",
-                maxMemorySize, memorySize, map);
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            sb.append(entry.getKey())
+                    .append('=')
+                    .append(entry.getValue())
+                    .append(",");
+        }
+        sb.append("maxMemory=")
+                .append(maxMemorySize)
+                .append(",")
+                .append("memorySize=")
+                .append(memorySize);
+        return sb.toString();
     }
 
 }
