@@ -1,0 +1,9 @@
+language: java
+jdk:
+  - openjdk7
+
+install:
+  - mvn install
+
+script:
+  - mvn clean test
