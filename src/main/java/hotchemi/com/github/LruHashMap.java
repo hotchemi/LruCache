@@ -12,18 +12,16 @@ import java.util.Map;
  */
 final class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
-    private static final long serialVersionUID = 1L;
+    private final int capacity;
 
-    private final int limitSize;
-
-    public LruHashMap(int limitSize) {
-        super(limitSize, 0.75f, true);
-        this.limitSize = limitSize;
+    public LruHashMap(int capacity) {
+        super(capacity, 0.75f, true);
+        this.capacity = capacity;
     }
 
     @Override
     protected boolean removeEldestEntry(Map.Entry entry) {
-        return size() > limitSize;
+        return size() > capacity;
     }
 
 }

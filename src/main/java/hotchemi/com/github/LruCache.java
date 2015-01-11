@@ -1,11 +1,7 @@
 package hotchemi.com.github;
 
-import android.graphics.Bitmap;
-
 import java.util.Map;
 import java.util.Objects;
-
-import static hotchemi.com.github.Utils.getBitmapSize;
 
 /*
  * A memory cache implementation which uses a LRU policy.
@@ -14,50 +10,39 @@ import static hotchemi.com.github.Utils.getBitmapSize;
  *
  * @author Shintaro Katafuchi
  */
-public final class LruCache implements Cache<String, Bitmap> {
-
-    private static final String TAG = LruCache.class.getName();
+public class LruCache<K, V> implements Cache<K, V> {
 
     /**
-     * Evict all entries flag.
+     * The flag represents remove all entries in the cache.
      */
-    private static final int EVICT_ALL = -1;
+    private static final int REMOVE_ALL = -1;
 
-    /**
-     * Default cache entry size.
-     */
-    private static final int DEFAULT_LIMIT_SIZE = 10;
+    private static final int DEFAULT_CAPACITY = 10;
 
-    /**
-     * Max entry count is 10.
-     */
-    private final Map<String, Bitmap> map;
+    private final Map<K, V> map;
 
-    /**
-     * Max memory size.
-     */
     private final int maxMemorySize;
 
-    /**
-     * Current memory size.
-     */
     private int memorySize;
 
     public LruCache() {
-        this.map = new LruHashMap<>(DEFAULT_LIMIT_SIZE);
-        maxMemorySize = DEFAULT_LIMIT_SIZE * 1024 * 1024;
+        this.map = new LruHashMap<>(DEFAULT_CAPACITY);
+        maxMemorySize = DEFAULT_CAPACITY * 1024 * 1024;
     }
 
-    public LruCache(int limitSize) {
-        this.map = new LruHashMap<>(limitSize);
-        maxMemorySize = limitSize * 1024 * 1024;
+    public LruCache(int capacity) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("capacity <= 0");
+        }
+        this.map = new LruHashMap<>(capacity);
+        maxMemorySize = capacity * 1024 * 1024;
     }
 
     @Override
-    public Bitmap get(String key) {
+    public V get(K key) {
         Objects.requireNonNull(key, "key == null");
         synchronized (this) {
-            Bitmap value = map.get(key);
+            V value = map.get(key);
             if (value != null) {
                 return value;
             }
@@ -66,15 +51,15 @@ public final class LruCache implements Cache<String, Bitmap> {
     }
 
     @Override
-    public Bitmap put(String key, Bitmap value) {
+    public V put(K key, V value) {
         Objects.requireNonNull(key, "key == null");
         Objects.requireNonNull(value, "value == null");
-        Bitmap previous;
+        V previous;
         synchronized (this) {
             previous = map.put(key, value);
-            memorySize += getBitmapSize(value);
+            memorySize += getValueSize(value);
             if (previous != null) {
-                memorySize -= getBitmapSize(previous);
+                memorySize -= getValueSize(previous);
             }
             trimToSize(maxMemorySize);
         }
@@ -82,8 +67,26 @@ public final class LruCache implements Cache<String, Bitmap> {
     }
 
     @Override
+    public V remove(K key) {
+        Objects.requireNonNull(key, "key == null");
+        V previous;
+        synchronized (this) {
+            previous = map.remove(key);
+            if (previous != null) {
+                memorySize -= getValueSize(previous);
+            }
+        }
+        return previous;
+    }
+
+    @Override
     public synchronized void clear() {
-        trimToSize(EVICT_ALL);
+        trimToSize(REMOVE_ALL);
+    }
+
+    @Override
+    public synchronized int getMaxMemorySize() {
+        return maxMemorySize;
     }
 
     @Override
@@ -92,24 +95,55 @@ public final class LruCache implements Cache<String, Bitmap> {
     }
 
     /**
-     * Trim items in the cache.
+     * Returns the class name.
+     * <p>
+     * This method should be overridden to debug exactly.
+     *
+     * @return class name.
+     */
+    protected String getClassName() {
+        return LruCache.class.getName();
+    }
+
+    /**
+     * Returns the size of the entry.
+     * <p>
+     * The default implementation returns 1 so that max size is the maximum number of entries.
+     * <p>
+     * This method should be overridden if we control memory size correctly.
+     *
+     * @param value value
+     * @return the size of the entry.
+     */
+    protected int getValueSize(V value) {
+        return 1;
+    }
+
+    /**
+     * Remove the eldest entries.
      * <p>
      * <em>Note:</em> This method has to be called in synchronized block.
      *
-     * @param maxSize maxSize
+     * @param maxSize max size
      */
     private void trimToSize(int maxSize) {
         while (true) {
             if (memorySize < 0 || (map.isEmpty() && memorySize != 0)) {
-                throw new IllegalStateException(TAG + ".sizeOf() is reporting inconsistent results");
+                throw new IllegalStateException(getClassName() + " is reporting inconsistent results");
             }
             if (memorySize <= maxSize || map.isEmpty()) {
                 break;
             }
-            Map.Entry<String, Bitmap> entry = map.entrySet().iterator().next();
-            map.remove(entry.getKey());
-            memorySize -= getBitmapSize(entry.getValue());
+            Map.Entry<K, V> toRemove = map.entrySet().iterator().next();
+            map.remove(toRemove.getKey());
+            memorySize -= getValueSize(toRemove.getValue());
         }
+    }
+
+    @Override
+    public synchronized final String toString() {
+        return String.format(getClassName() + "[maxMemory=%d,currentMemory=%d,map=%d]",
+                maxMemorySize, memorySize, map);
     }
 
 }
