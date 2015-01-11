@@ -118,7 +118,7 @@ public class LruCache<K, V> implements Cache<K, V> {
      * <p>
      * The default implementation returns 1 so that max size is the maximum number of entries.
      * <p>
-     * <em>Note:</em> This method should be overridden if we control memory size correctly.
+     * <em>Note:</em> This method should be overridden if you control memory size correctly.
      *
      * @param value value
      * @return the size of the entry.
