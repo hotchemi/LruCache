@@ -27,8 +27,7 @@ public class LruCache<K, V> implements Cache<K, V> {
     private int memorySize;
 
     public LruCache() {
-        this.map = new LruHashMap<>(DEFAULT_CAPACITY);
-        maxMemorySize = DEFAULT_CAPACITY * 1024 * 1024;
+        this(DEFAULT_CAPACITY);
     }
 
     public LruCache(int capacity) {
@@ -40,7 +39,7 @@ public class LruCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V get(K key) {
+    public final V get(K key) {
         Objects.requireNonNull(key, "key == null");
         synchronized (this) {
             V value = map.get(key);
@@ -52,7 +51,7 @@ public class LruCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V put(K key, V value) {
+    public final V put(K key, V value) {
         Objects.requireNonNull(key, "key == null");
         Objects.requireNonNull(value, "value == null");
         V previous;
@@ -68,7 +67,7 @@ public class LruCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public V remove(K key) {
+    public final V remove(K key) {
         Objects.requireNonNull(key, "key == null");
         V previous;
         synchronized (this) {
@@ -81,24 +80,24 @@ public class LruCache<K, V> implements Cache<K, V> {
     }
 
     @Override
-    public synchronized void clear() {
+    public synchronized final void clear() {
         trimToSize(REMOVE_ALL);
     }
 
     @Override
-    public synchronized int getMaxMemorySize() {
+    public synchronized final int getMaxMemorySize() {
         return maxMemorySize;
     }
 
     @Override
-    public synchronized int getMemorySize() {
+    public synchronized final int getMemorySize() {
         return memorySize;
     }
 
     /**
      * Returns a copy of the current contents of the cache.
      */
-    public synchronized Map<K, V> snapshot() {
+    public synchronized final Map<K, V> snapshot() {
         return new LinkedHashMap<>(map);
     }
 
