@@ -38,7 +38,7 @@ cache.put("a", "A");
 
 ### BitmapLruCache
 
-[`BitmaplruCache`](https://github.com/hotchemi/LruCache/blob/master/src/main/java/hotchemi/com/github/BitmapLruCache.java) is the class that specialized in caching `Bitmap`.
+[`BitmapLruCache`](https://github.com/hotchemi/LruCache/blob/master/src/main/java/hotchemi/com/github/BitmapLruCache.java) is the class that specialized in caching `Bitmap`.
 
 ```java
 private static final Bitmap A = Bitmap.createBitmap(1, 1, ALPHA_8);
