@@ -24,7 +24,6 @@ public interface Cache<K, V> {
      */
     V put(K key, V value);
 
-
     /**
      * Removes the entry for {@code key} if it exists or return {@code null}.
      *
