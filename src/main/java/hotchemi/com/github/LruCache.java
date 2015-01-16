@@ -139,7 +139,7 @@ public class LruCache<K, V> implements Cache<K, V> {
                 break;
             }
             if (memorySize < 0 || (map.isEmpty() && memorySize != 0)) {
-                throw new IllegalStateException(getClassName() + " is reporting inconsistent results");
+                throw new IllegalStateException(getClassName() + ".getValueSize() is reporting inconsistent results");
             }
             Map.Entry<K, V> toRemove = map.entrySet().iterator().next();
             map.remove(toRemove.getKey());
